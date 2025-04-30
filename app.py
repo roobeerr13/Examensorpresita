@@ -36,15 +36,21 @@ def return_book(user_name, book_title):
 def list_books():
     return "\n".join([f"{book.get_title()} - {'Disponible' if book.is_available() else 'Prestado'}" for book in library.books])
 
-# Crear interfaz con Gradio
+# Corregido: cada función tiene sus propios componentes de entrada
 iface = gr.Interface(
-    fn=[add_book, add_user, borrow_book, return_book, list_books],
+    fn=[
+        add_book, 
+        add_user, 
+        borrow_book, 
+        return_book, 
+        list_books
+    ],
     inputs=[
-        ["text", "text", "text"],  # Entrada para añadir libros (Título, Autor, Género)
-        "text",  # Entrada para añadir usuario (Nombre)
-        ["text", "text"],  # Préstamo de libro (Usuario, Título)
-        ["text", "text"],  # Devolución de libro (Usuario, Título)
-        None  # Listado de libros (No requiere entrada)
+        [gr.Textbox(label="Título"), gr.Textbox(label="Autor"), gr.Textbox(label="Género")],  # Añadir libro
+        gr.Textbox(label="Nombre del usuario"),  # Añadir usuario
+        [gr.Textbox(label="Nombre del usuario"), gr.Textbox(label="Título del libro")],  # Prestar libro
+        [gr.Textbox(label="Nombre del usuario"), gr.Textbox(label="Título del libro")],  # Devolver libro
+        None  # Listar libros (sin entrada)
     ],
     outputs=["text", "text", "text", "text", "text"],
     live=True,
