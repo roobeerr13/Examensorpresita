@@ -5,57 +5,50 @@ from genre import BookGenre
 # Instancia de la biblioteca
 library = Library()
 
-def add_book(title, author, genre):
-    if genre.upper() in BookGenre.__members__:
-        library.add_book(title, author, BookGenre[genre.upper()])
-        return f"Libro '{title}' añadido correctamente."
-    return "Género no válido. Usa FICTION, NONFICTION, SCIENCE, ART."
+def library_system(action, param1="", param2="", param3=""):
+    if action == "Añadir libro":
+        if param3.upper() in BookGenre.__members__:
+            library.add_book(param1, param2, BookGenre[param3.upper()])
+            return f"Libro '{param1}' añadido correctamente."
+        return "Género no válido. Usa FICTION, NONFICTION, SCIENCE, ART."
+    
+    elif action == "Añadir usuario":
+        library.add_user(param1)
+        return f"Usuario '{param1}' registrado con éxito."
+    
+    elif action == "Prestar libro":
+        user = next((u for u in library.users if u.name == param1), None)
+        book = library.find_book(param2)
+        if user and book:
+            user.borrow_book(book)
+            return f"Libro '{param2}' prestado a {param1}."
+        return "Usuario o libro no encontrado."
+    
+    elif action == "Devolver libro":
+        user = next((u for u in library.users if u.name == param1), None)
+        book = library.find_book(param2)
+        if user and book:
+            user.return_book(book)
+            return f"Libro '{param2}' devuelto por {param1}."
+        return "Usuario o libro no encontrado."
+    
+    elif action == "Listar libros":
+        return "\n".join([f"{book.get_title()} - {'Disponible' if book.is_available() else 'Prestado'}" for book in library.books])
+    
+    return "Acción no válida."
 
-def add_user(name):
-    library.add_user(name)
-    return f"Usuario '{name}' registrado con éxito."
-
-def borrow_book(user_name, book_title):
-    user = next((u for u in library.users if u.name == user_name), None)
-    book = library.find_book(book_title)
-
-    if user and book:
-        user.borrow_book(book)
-        return f"Libro '{book_title}' prestado a {user_name}."
-    return "Usuario o libro no encontrado."
-
-def return_book(user_name, book_title):
-    user = next((u for u in library.users if u.name == user_name), None)
-    book = library.find_book(book_title)
-
-    if user and book:
-        user.return_book(book)
-        return f"Libro '{book_title}' devuelto por {user_name}."
-    return "Usuario o libro no encontrado."
-
-def list_books():
-    return "\n".join([f"{book.get_title()} - {'Disponible' if book.is_available() else 'Prestado'}" for book in library.books])
-
-# Corregido: cada función tiene sus propios componentes de entrada
+# Creación de la interfaz en Gradio
 iface = gr.Interface(
-    fn=[
-        add_book, 
-        add_user, 
-        borrow_book, 
-        return_book, 
-        list_books
-    ],
+    fn=library_system,
     inputs=[
-        [gr.Textbox(label="Título"), gr.Textbox(label="Autor"), gr.Textbox(label="Género")],  # Añadir libro
-        gr.Textbox(label="Nombre del usuario"),  # Añadir usuario
-        [gr.Textbox(label="Nombre del usuario"), gr.Textbox(label="Título del libro")],  # Prestar libro
-        [gr.Textbox(label="Nombre del usuario"), gr.Textbox(label="Título del libro")],  # Devolver libro
-        None  # Listar libros (sin entrada)
+        gr.Dropdown(choices=["Añadir libro", "Añadir usuario", "Prestar libro", "Devolver libro", "Listar libros"], label="Selecciona una acción"),
+        gr.Textbox(label="Parámetro 1 (Título o Nombre de usuario)", placeholder="Título del libro o nombre de usuario"),
+        gr.Textbox(label="Parámetro 2 (Autor o Título del libro)", placeholder="Autor del libro o título del libro"),
+        gr.Textbox(label="Parámetro 3 (Género del libro, si aplica)", placeholder="Género del libro (FICTION, NONFICTION, etc.)")
     ],
-    outputs=["text", "text", "text", "text", "text"],
-    live=True,
+    outputs=gr.Textbox(label="Resultado"),
     title="Sistema de Gestión de Biblioteca",
-    description="Añade libros, registra usuarios, presta y devuelve libros en una biblioteca virtual."
+    description="Selecciona una acción y proporciona los datos necesarios para gestionar la biblioteca."
 )
 
 iface.launch()
